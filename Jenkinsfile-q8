@@ -3,25 +3,25 @@ pipeline {
     stages {
         stage('Build Blue Image') {
             steps {
-                sh '''
-                    eval $(minikube docker-env)
-                    docker build -t myapp:v1 /home/anu/k8s-demo/
-                '''
+                sh 'docker build -t myapp:v1 .'
             }
         }
         stage('Build Green Image') {
             steps {
-                sh '''
-                    eval $(minikube docker-env)
-                    docker build -t myapp:v2 /home/anu/k8s-demo/
-                '''
+                sh 'docker build -t myapp:v2 .'
+            }
+        }
+        stage('Load Images to Minikube') {
+            steps {
+                sh 'minikube image load myapp:v1'
+                sh 'minikube image load myapp:v2'
             }
         }
         stage('Deploy Both') {
             steps {
-                sh 'kubectl apply -f /home/anu/k8s-demo/q8-blue.yaml'
-                sh 'kubectl apply -f /home/anu/k8s-demo/q8-green.yaml'
-                sh 'kubectl apply -f /home/anu/k8s-demo/q8-service.yaml'
+                sh 'kubectl apply -f q8-blue.yaml'
+                sh 'kubectl apply -f q8-green.yaml'
+                sh 'kubectl apply -f q8-service.yaml'
             }
         }
         stage('Test Green') {
