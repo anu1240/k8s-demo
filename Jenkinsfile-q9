@@ -3,10 +3,8 @@ pipeline {
     stages {
         stage('Build Image') {
             steps {
-                sh '''
-                    eval $(minikube docker-env)
-                    docker build -t healthapp:latest /home/anu/k8s-demo/
-                '''
+                sh 'docker build -t healthapp:latest .'
+                sh 'minikube image load healthapp:latest'
             }
         }
         stage('Image Scan - Trivy') {
@@ -16,12 +14,12 @@ pipeline {
         }
         stage('Apply RBAC') {
             steps {
-                sh 'kubectl apply -f /home/anu/k8s-demo/q9-rbac.yaml'
+                sh 'kubectl apply -f q9-rbac.yaml'
             }
         }
         stage('Deploy') {
             steps {
-                sh 'kubectl apply -f /home/anu/k8s-demo/q7-deployment.yaml'
+                sh 'kubectl apply -f q7-deployment.yaml'
             }
         }
         stage('Verify') {
