@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build Image') {
+            steps {
+                sh '''
+                    eval $(minikube docker-env)
+                    docker build -t healthapp:latest /home/anu/k8s-demo/
+                '''
+            }
+        }
+        stage('Image Scan - Trivy') {
+            steps {
+                sh 'trivy image --severity HIGH,CRITICAL myapp:latest'
+            }
+        }
+        stage('Apply RBAC') {
+            steps {
+                sh 'kubectl apply -f /home/anu/k8s-demo/q9-rbac.yaml'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'kubectl apply -f /home/anu/k8s-demo/q7-deployment.yaml'
+            }
+        }
+        stage('Verify') {
+            steps {
+                sh 'kubectl get pods'
+                sh 'kubectl get serviceaccount'
+                sh 'kubectl get role'
+            }
+        }
+    }
+    post {
+        failure { echo 'Security gate FAILED — deployment blocked!' }
+        success { echo 'All security checks passed!' }
+    }
+}

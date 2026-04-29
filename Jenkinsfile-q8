@@ -1,0 +1,50 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build Blue Image') {
+            steps {
+                sh '''
+                    eval $(minikube docker-env)
+                    docker build -t myapp:v1 /home/anu/k8s-demo/
+                '''
+            }
+        }
+        stage('Build Green Image') {
+            steps {
+                sh '''
+                    eval $(minikube docker-env)
+                    docker build -t myapp:v2 /home/anu/k8s-demo/
+                '''
+            }
+        }
+        stage('Deploy Both') {
+            steps {
+                sh 'kubectl apply -f /home/anu/k8s-demo/q8-blue.yaml'
+                sh 'kubectl apply -f /home/anu/k8s-demo/q8-green.yaml'
+                sh 'kubectl apply -f /home/anu/k8s-demo/q8-service.yaml'
+            }
+        }
+        stage('Test Green') {
+            steps {
+                sh 'kubectl rollout status deployment/myapp-green'
+                echo 'Green is healthy!'
+            }
+        }
+        stage('Switch Traffic to Green') {
+            steps {
+                sh '''kubectl patch svc bg-service \
+                  -p "{\\"spec\\":{\\"selector\\":{\\"app\\":\\"myapp\\",\\"version\\":\\"green\\"}}}"
+                '''
+                echo 'Traffic switched to GREEN!'
+            }
+        }
+    }
+    post {
+        failure {
+            sh '''kubectl patch svc bg-service \
+              -p "{\\"spec\\":{\\"selector\\":{\\"app\\":\\"myapp\\",\\"version\\":\\"blue\\"}}}"
+            '''
+            echo 'ROLLED BACK to Blue!'
+        }
+    }
+}
