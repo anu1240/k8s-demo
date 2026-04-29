@@ -4,14 +4,14 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                    docker build -t myapp:latest /home/anu/k8s-demo/
+                    docker build -t myapp:latest .
                     minikube image load myapp:latest
                 '''
             }
         }
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply -f /home/anu/k8s-demo/q7-deployment.yaml'
+                sh 'kubectl apply -f q7-deployment.yaml'
             }
         }
         stage('Verify') {
