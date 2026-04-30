@@ -3,12 +3,12 @@ pipeline {
     stages {
         stage('Build Blue Image') {
             steps {
-                sh 'docker build -t myapp:v1 .'
+                sh 'docker build -t myapp:v1 -f Dockerfile-v1 .'
             }
         }
         stage('Build Green Image') {
             steps {
-                sh 'docker build -t myapp:v2 .'
+                sh 'docker build -t myapp:v2 -f Dockerfile-v2 .'
             }
         }
         stage('Load Images to Minikube') {
