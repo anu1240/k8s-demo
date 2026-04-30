@@ -1,6 +1,15 @@
 pipeline {
     agent any
     stages {
+        stage('Sync Kubeconfig') {
+            steps {
+                sh '''
+                    cp /home/anu/.kube/config /var/lib/jenkins/.kube/config
+                    sed -i "s|/home/anu/.minikube|/var/lib/jenkins/.minikube|g" /var/lib/jenkins/.kube/config
+                    cp -r /home/anu/.minikube/. /var/lib/jenkins/.minikube/
+                '''
+            }
+        }
         stage('Build Blue Image') {
             steps {
                 sh 'docker build -t myapp:v1 -f Dockerfile-v1 .'
