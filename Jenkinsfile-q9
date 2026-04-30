@@ -3,13 +3,13 @@ pipeline {
     stages {
         stage('Build Image') {
             steps {
-                sh 'docker build -t healthapp:latest .'
+                sh 'docker build -t healthapp:latest -f Dockerfile-health .'
                 sh 'minikube image load healthapp:latest'
             }
         }
         stage('Image Scan - Trivy') {
             steps {
-                sh 'trivy image --severity HIGH,CRITICAL myapp:latest'
+                sh 'trivy image --severity HIGH,CRITICAL healthapp:latest'
             }
         }
         stage('Apply RBAC') {
@@ -17,9 +17,9 @@ pipeline {
                 sh 'kubectl apply -f q9-rbac.yaml'
             }
         }
-        stage('Deploy') {
+        stage('Deploy Healthcare App') {
             steps {
-                sh 'kubectl apply -f q7-deployment.yaml'
+                sh 'kubectl apply -f q9-deployment.yaml'
             }
         }
         stage('Verify') {
@@ -32,6 +32,6 @@ pipeline {
     }
     post {
         failure { echo 'Security gate FAILED — deployment blocked!' }
-        success { echo 'All security checks passed!' }
+        success { echo 'All security checks passed — Healthcare app deployed!' }
     }
 }
